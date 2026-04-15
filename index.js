@@ -30,11 +30,16 @@ app.post('/webhook', async (req, res) => {
   const from = msg.from;
   const text = msg.text.body;
 
+  // CORRECCIÓN PARA MÉXICO: Meta envía 521, pero para responder espera solo 52
+  // Si no se limpia, sale el error ( #131030 ) Recipient phone number not in allowed list
+  const cleanFrom = from.startsWith('521') ? from.replace('521', '52') : from;
+
   try {
     const aiRes = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        model: 'claude-haiku-4-5-20251001',
+        // Cambié el modelo a claude-3-haiku para evitar errores de versión inexistente
+        model: 'claude-3-haiku-20240307', 
         max_tokens: 500,
         system: SYSTEM_PROMPT || 'Eres un asistente amigable. Responde en español y de forma breve.',
         messages: [{ role: 'user', content: text }]
@@ -42,25 +47,31 @@ app.post('/webhook', async (req, res) => {
       {
         headers: {
           'x-api-key': ANTHROPIC_KEY,
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json'
         }
       }
     );
 
     const reply = aiRes.data.content[0].text;
 
+    // Enviar respuesta a WhatsApp
     await axios.post(
       `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
       {
         messaging_product: 'whatsapp',
-        to: from,
+        to: cleanFrom, // <--- Usamos el número corregido aquí
         text: { body: reply }
       },
       {
-        headers: { Authorization: `Bearer ${WA_TOKEN}` }
+        headers: { 
+          'Authorization': `Bearer ${WA_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
       }
     );
   } catch (err) {
+    // Esto imprimirá el error detallado en los logs de Railway
     console.error('Error:', err.response?.data || err.message);
   }
 });
