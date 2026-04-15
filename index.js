@@ -38,7 +38,8 @@ app.post('/webhook', async (req, res) => {
     const aiRes = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        // Cambié el modelo a claude-3-haiku para evitar errores de versión inexistente
+        // El nombre correcto es claude-3-haiku-20240307
+        // Pero asegúrate de que no tenga espacios extras
         model: 'claude-3-haiku-20240307', 
         max_tokens: 500,
         system: SYSTEM_PROMPT || 'Eres un asistente amigable. Responde en español y de forma breve.',
