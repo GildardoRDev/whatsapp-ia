@@ -40,7 +40,7 @@ app.post('/webhook', async (req, res) => {
       {
         // El nombre correcto es claude-3-haiku-20240307
         // Pero asegúrate de que no tenga espacios extras
-        model: 'claude-3-haiku-20240307', 
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
         system: SYSTEM_PROMPT || 'Eres un asistente amigable. Responde en español y de forma breve.',
         messages: [{ role: 'user', content: text }]
